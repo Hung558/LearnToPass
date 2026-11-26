@@ -22,7 +22,7 @@
 ### 2.1. `POST /api/appointment-services/online` & `POST /online-booking` — Đặt dịch vụ Online (`PetOwner`)
 - **`POST /online` (`service.js:51-89`):** Gắn thêm 1 dịch vụ vào `orderId` đã có của chính mình (`ownerId` check → **`403`** ở `L61-64`); tự tăng `sequenceNo` nếu không truyền; đụng unique `(orderId, sequenceNo)` → **`409`** (`L84-86`). Trả **`201`**.
 - **`POST /online-booking` (`service.js:107-202`):** Đặt 1 chạm cả `AppointmentOrder` + mảng `services[]`:
-  - Nếu có `slotStart` (`L117-159`): đọc `defaultDuration` của các dịch vụ (mặc định 30 phút), tính nối tiếp `scheduledStart`/`scheduledEnd` và `slotEnd` tổng; vượt `18:00` → **`400`** (`L152-157`).
+  - Nếu có `slotStart` (`L117-159`): đọc `defaultDuration` của các dịch vụ (mặc định 30 phút), tính nối tiếp `scheduledStart`/`scheduledEnd` và `slotEnd` tổng; vượt `21:00` → **`400`** (`L152-157`).
   - Gọi `createOnlineAppointment` → tạo tuần tự từng `AppointmentService` (không song song để không đụng `sequenceNo`, `L169-188`).
   - **Nếu tạo dịch vụ con lỗi → tự xóa sạch `AppointmentService` + `AppointmentOrder` vừa tạo (`L189-196`)**. Trả **`201`**.
 
@@ -60,7 +60,7 @@
 | `POST /online`, `/online-booking`, `/:id/grooming-note` | Tạo thành công | **`201`** | `{ message, data }` | `appointmentService.controller.js:48, 65, 185` |
 | `GET /`, `/my-queue`, `/my-grooming-notes`, `PATCH ...` | Thành công | **`200`** | `{ message, data }` | `controller.js:79,94,112,131,147,162,199,213` |
 | Mọi API | Sai role / Thiếu token | **`401`** / **`403`** | `'Chưa đăng nhập'` / `'Bạn không có quyền...'` | `appointmentService.routes.js:21-54` |
-| `POST /online-booking` | Mảng dịch vụ rỗng / `slotStart` ngoài `08:00–18:00` / tổng thời lượng vượt `18:00` | **`400`** | Lỗi thời gian / validate | `service.js:109, 119, 123, 153` |
+| `POST /online-booking` | Mảng dịch vụ rỗng / `slotStart` ngoài `08:00–21:00` / tổng thời lượng vượt `21:00` | **`400`** | Lỗi thời gian / validate | `service.js:109, 119, 123, 153` |
 | `POST /online`, `PATCH /:id/cancel` | `PetOwner` thao tác trên đơn của người khác | **`403`** | `'Bạn chỉ có thể tạo/hủy dịch vụ cho lịch hẹn của mình'` | `service.js:63, 340` |
 | Các API `/:id/*` | Không thấy dịch vụ / đơn cha / chưa có Grooming Note | **`404`** | Lỗi tương ứng | `service.js:230,329,335,457,463,634,637` |
 | `POST /online`, `PATCH cancel/start/complete`, `POST grooming-note` | Trùng `sequenceNo` (`11000`) / vi phạm `BR-07` hủy `<2h` / đơn đã kết thúc / dịch vụ đã có Grooming Note | **`409`** | Chi tiết lỗi xung đột | `service.js:85,345-384,466,611` |

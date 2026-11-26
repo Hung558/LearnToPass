@@ -506,7 +506,7 @@
 - **Trace Code & HTTP Status (Mở chứng minh ngay)**:
   - Luồng chạy: `src/routes/appointmentService.routes.js:1-56` (`uploadGroomingNotePhotos` `L47-53`) → `src/validators/appointmentService.validator.js` → `src/controllers/appointmentService.controller.js:31-213` → `src/services/appointmentService.service.js:63-585`.
   - Happy Path: `POST /online`, `/online-booking`, `/:id/grooming-note` → `201`; `GET /`, `/my-queue`, `/my-grooming-notes`, `PATCH assign-staff/start/complete/cancel` → `200`.
-  - Fail / Edge Cases liên quan: `slotStart` ngoài `08:00–18:00`, tổng thời lượng vượt `18:00` → `400` (`L109-153`); `PetOwner` thao tác trên đơn người khác → `403` (`L63,340`); trùng `sequenceNo` (`11000`), hủy `< 2h`, vi phạm `BR-12`, đã có Grooming Note → `409`; lỗi Cloudinary → `502` (`L582-585`).
+  - Fail / Edge Cases liên quan: `slotStart` ngoài `08:00–21:00`, tổng thời lượng vượt `21:00` → `400` (`L109-153`); `PetOwner` thao tác trên đơn người khác → `403` (`L63,340`); trùng `sequenceNo` (`11000`), hủy `< 2h`, vi phạm `BR-12`, đã có Grooming Note → `409`; lỗi Cloudinary → `502` (`L582-585`).
 - **Hỏi dồn tiếp theo (Follow-up) & Cách đỡ**:
   - *Hội đồng hỏi xoáy*: "Tại sao `createOnlineBooking` (`L107-202`) dùng vòng `for` tạo từng `AppointmentService` tuần tự thay vì `Promise.all`?"
   - *Cách trả lời*: Vì mỗi dịch vụ trong cùng 1 đơn có `sequenceNo` tăng dần (`1, 2, 3...`) với Unique Index `{ orderId, sequenceNo }` và tính `slotStart` cộng dồn theo `durationMinutes` của dịch vụ trước; chạy tuần tự đảm bảo thứ tự chính xác và dễ dừng/báo lỗi gọn khi có xung đột.

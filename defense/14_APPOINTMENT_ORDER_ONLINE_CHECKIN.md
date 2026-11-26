@@ -9,7 +9,7 @@
 | Tầng | File | Chức năng |
 | :--- | :--- | :--- |
 | **Route** | `src/routes/appointmentOrder.routes.js` (`L1-31`) | Mount lồng `/walk-in` (`L9`), `protect` (`L12`), 7 endpoint chính |
-| **Validator** | `src/validators/appointmentOrder.validator.js` (`L1-439`) | Giờ mở cửa `08:00–18:00`, ngày lịch thật VN, `intake`, `cancelReason ≤ 200`, `serviceAssignments` |
+| **Validator** | `src/validators/appointmentOrder.validator.js` (`L1-439`) | Giờ mở cửa `08:00–21:00`, ngày lịch thật VN, `intake`, `cancelReason ≤ 200`, `serviceAssignments` |
 | **Controller** | `src/controllers/appointmentOrder.controller.js` (`L1-152`) | 7 handler (gồm `triggerFlagOverdue` gọi `JOB-01` ở `L121-142`) |
 | **Service** | `src/services/appointmentOrder.service.js` (`L1-1078`) | Giữ chỗ chuồng theo ngày (`L156-221`), enrich batch `$in` (`L242-346`), Check-in Transaction (`L684-947`), Hủy lịch (`L953-1069`) |
 | **Models (6)** | `AppointmentOrder`, `AppointmentService`, `Pet`, `User`, `Cage`, `CageAssignment` | Compound index `{ petId, date }`, `{ date, derivedStatus }`, `{ date, reservedCageId }` |
@@ -21,7 +21,7 @@
 
 ### 2.1. `POST /api/appointment-orders/online` — `PetOwner` đặt lịch hẹn Online
 - **Quyền:** `PetOwner` — `appointmentOrder.routes.js:15`.
-- **Body:** `{ petId*, date* (YYYY-MM-DD >= hôm nay), slotStart? (08:00–17:59, nếu hôm nay phải > giờ hiện tại VN), slotEnd? (<=18:00, > slotStart), note? (≤500) }`.
+- **Body:** `{ petId*, date* (YYYY-MM-DD >= hôm nay), slotStart? (08:00–20:59, nếu hôm nay phải > giờ hiện tại VN), slotEnd? (<=21:00, > slotStart), note? (≤500) }`.
 - **Luồng (`appointmentOrder.service.js:352-413`):**
   1. Kiểm tra `Pet` thuộc `ownerId` (`404`) và chưa `Deleted` (`400`) (`L354-360`).
   2. Chống đặt trùng 1 thú cưng 2 đơn chưa hủy trong cùng ngày (`409`, `L363-370`).
@@ -65,7 +65,7 @@
 | Endpoint | Case | HTTP | Message / Kết quả | Code ở đâu |
 | :--- | :--- | :-: | :--- | :--- |
 | `POST /online` | Đặt thành công (tự giữ chuồng dự kiến + email BCC lễ tân) | **`201`** | `{ message: 'Đặt lịch thành công', data }` | `appointmentOrder.controller.js:34` |
-| `POST /online` | Sai format / ngày quá khứ / ngoài `08:00–18:00` / pet đã `Deleted` | **`400`** | `{ message, errors }` / `'Không thể đặt lịch cho thú cưng đã bị xóa...'` | `appointmentOrder.validator.js:101-166`, `service.js:359` |
+| `POST /online` | Sai format / ngày quá khứ / ngoài `08:00–21:00` / pet đã `Deleted` | **`400`** | `{ message, errors }` / `'Không thể đặt lịch cho thú cưng đã bị xóa...'` | `appointmentOrder.validator.js:101-166`, `service.js:359` |
 | `POST /online` | Pet không thuộc chủ / Trùng lịch trong ngày | **`404`** / **`409`** | `'Không tìm thấy thú cưng'` / `'Thú cưng này đã có lịch hẹn trong ngày đã chọn'` | `appointmentOrder.service.js:356, 369` |
 | `PATCH /:id/check-in` | Check-in thành công (đơn + dịch vụ + chuồng) | **`200`** | `{ message: 'Check-in thành công', data }` | `appointmentOrder.controller.js:94` |
 | `PATCH /:id/check-in` | Sai `BR-11` / nhân sự không Active hoặc sai `requiredRole` / gửi cả `assignedStaffId` & `serviceAssignments` | **`400`** | Chi tiết lỗi | `validator.js:290-429`, `service.js:579,640,643,651` |
